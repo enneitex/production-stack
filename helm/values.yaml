@@ -1,10 +1,11 @@
 # -- Default values for llmstack helm chart
 # -- Declare variables to be passed into your templates.
 
-# -- Serving engine configuratoon
+# @section -- Serving Engine Configuration
 servingEngineSpec:
+  # -- Enable the serving engine deployment.
   enableEngine: true
-  # -- Customized labels for the serving engine deployment
+  # -- Additional deployment labels for the serving engine deployment
   labels:
     environment: "test"
     release: "test"
@@ -247,6 +248,22 @@ servingEngineSpec:
   #      mountPath: /cache
   #      readOnly: false
 
+  # -- List of model serving engine deployment configurations. Each entry configures a separate vLLM model deployment.
+  # Required fields: `name`, `repository`, `tag`, `modelURL`.
+  # Optional fields: `replicaCount`, `requestCPU`, `requestMemory`, `requestGPU`
+  # (and HAMi variants: `requestGPUType`, `requestGPUMem`, `requestGPUMemPercentage`, `requestGPUCores`),
+  # `limitCPU`, `limitMemory`, `imagePullPolicy`, `imagePullSecret`, `annotations`, `podAnnotations`,
+  # `serviceAccountName`, `priorityClassName`, `runtimeClassName`,
+  # `vllmConfig` (v0, enablePrefixCaching, enableChunkedPrefill, maxModelLen, dtype,
+  # tensorParallelSize, maxNumSeqs, maxLoras, gpuMemoryUtilization, runner, convert, extraArgs),
+  # `lmcacheConfig` (enabled, cpuOffloadingBufferSize, logLevel),
+  # `hf_token` (string or secretRef), `envFromSecret`, `env`,
+  # `pvcStorage`, `pvcAccessMode`, `storageClass`, `pvcMatchLabels`, `pvcLabels`, `pvcAnnotations`,
+  # `extraVolumes`, `extraVolumeMounts`, `initContainer`, `enableLoRA`, `shmSize`, `chatTemplate`,
+  # `affinity`, `nodeSelectorTerms`, `nodeName`,
+  # `keda` (enabled, minReplicaCount, maxReplicaCount, pollingInterval, cooldownPeriod,
+  # idleReplicaCount, initialCooldownPeriod, triggers, advanced, fallback).
+  # See the [Model Spec Reference](#model-spec-reference) section for a complete example.
   modelSpec: []
 
   # -- Container port
@@ -359,6 +376,7 @@ servingEngineSpec:
     image: "lmcache/lmstack-sidecar:latest"
     imagePullPolicy: "Always"
 
+# @section -- Router Configuration
 routerSpec:
   # -- The docker image of the router. The following values are defaults:
   repository: "lmcache/lmstack-router"
@@ -434,6 +452,7 @@ routerSpec:
 
   # -- OpenTelemetry tracing configuration
   # When otelEndpoint is set, tracing is automatically enabled
+  # @section -- Router OpenTelemetry Configuration
   otel:
     # -- OTLP endpoint for tracing (e.g., "localhost:4317" or "otel-collector:4317")
     endpoint: ""
@@ -465,6 +484,7 @@ routerSpec:
   # -- Customized pod annotations for the router pods
   podAnnotations: {}
 
+  # @section -- Router Ingress Configuration
   ingress:
     # -- Enable ingress controller resource
     enabled: false
@@ -584,7 +604,17 @@ routerSpec:
   #    # -- Path to access on the HTTP server
   #
 
-# -- LoRA Adapter Configuration
+# @section -- LoRA Adapters Configuration
+
+# -- List of LoRA adapter instances to deploy.
+# Required fields per entry: `name`, `baseModel`, `adapterSource.type` (local/s3/http/huggingface),
+# `adapterSource.adapterName`.
+# Optional fields: `vllmApiKey` (string value or secretRef with secretName/secretKey),
+# `adapterSource.adapterPath`, `adapterSource.repository`, `adapterSource.pattern`,
+# `adapterSource.maxAdapters`, `adapterSource.credentials` (secretName, secretKey),
+# `loraAdapterDeploymentConfig.algorithm` (default/ordered/equalized),
+# `loraAdapterDeploymentConfig.replicas`, `labels`.
+# See the [LoRA Adapters Reference](#lora-adapters-reference) section for a complete example.
 loraAdapters: []
 
   # -- LoRA adapter instances to deploy
@@ -631,6 +661,7 @@ loraAdapters: []
   #       model: "llama3-nemoguard"
 
 # -- lora controller Configuration
+# @section -- LoRA Controller Configuration
 loraController:
   enableLoraController: false
   # -- kubernetes cluster domain
@@ -691,4 +722,5 @@ loraController:
     enabled: false
 
 # -- Array of extra K8s manifests to deploy. Supports use of custom Helm templates
+# @section -- Other Configuration
 extraObjects: []
